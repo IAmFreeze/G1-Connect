@@ -87,10 +87,6 @@ struct G1_ConnectApp: App {
         print("🥽 Setting up G1 smart glasses integration...")
         
         // Initialize core managers
-        let bluetoothManager = BluetoothManager.shared
-        let g1DisplayManager = G1DisplayManager.shared
-        let g1AudioManager = G1AudioManager.shared
-        let lilyAIManager = LilyAIManager.shared
         
         // Verify G1 components are ready
         verifyG1Components()

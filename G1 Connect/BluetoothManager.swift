@@ -300,55 +300,6 @@ class BluetoothManager: NSObject, ObservableObject {
         }
     }
     
-    // MARK: - Text Processing Helpers
-    
-    private func splitTextIntoLines(_ text: String, maxWidth: Int, fontSize: Int) -> [String] {
-        var lines: [String] = []
-        let words = text.components(separatedBy: " ")
-        
-        var currentLine = ""
-        for word in words {
-            let testLine = currentLine.isEmpty ? word : "\(currentLine) \(word)"
-            
-            // Estimate text width (simplified calculation)
-            let estimatedWidth = testLine.count * fontSize / 2
-            
-            if estimatedWidth <= maxWidth {
-                currentLine = testLine
-            } else {
-                if !currentLine.isEmpty {
-                    lines.append(currentLine)
-                }
-                currentLine = word
-            }
-        }
-        
-        if !currentLine.isEmpty {
-            lines.append(currentLine)
-        }
-        
-        return lines
-    }
-    
-    private func splitLinesIntoScreens(_ lines: [String], linesPerScreen: Int) -> [[String]] {
-        var screens: [[String]] = []
-        var currentScreen: [String] = []
-        
-        for line in lines {
-            if currentScreen.count < linesPerScreen {
-                currentScreen.append(line)
-            } else {
-                screens.append(currentScreen)
-                currentScreen = [line]
-            }
-        }
-        
-        if !currentScreen.isEmpty {
-            screens.append(currentScreen)
-        }
-        
-        return screens
-    }
     
     private func sendScreenToG1(_ screen: [String], currentPage: Int, totalPages: Int) {
         let screenText = screen.joined(separator: "\n")

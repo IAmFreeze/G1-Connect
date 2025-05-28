@@ -208,7 +208,7 @@ extension G1AudioManager: G1AudioDelegate {
         guard isProcessingAudio else { return }
         
         // Check sequence order
-        let expectedSequence = (lastSequenceNumber + 1) % 256
+        let expectedSequence = UInt8((Int(lastSequenceNumber) + 1) % 256)
         if sequenceNumber != expectedSequence && lastSequenceNumber != 0 {
             print("Warning: Audio packet out of order. Expected: \(expectedSequence), Received: \(sequenceNumber)")
         }

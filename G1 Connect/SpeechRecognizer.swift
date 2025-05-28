@@ -9,12 +9,12 @@ class SpeechRecognizer: ObservableObject {
     @Published var isListening = false
     @Published var recognizedText = ""
     
-    private let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "de-DE"))
-    private let audioEngine = AVAudioEngine()
-    private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
-    private var recognitionTask: SFSpeechRecognitionTask?
-    private var wakeWord: String?
-    private var wakeWordDetectedHandler: (() -> Void)?
+    let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "de-DE"))
+    let audioEngine = AVAudioEngine()
+    var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
+    var recognitionTask: SFSpeechRecognitionTask?
+    var wakeWord: String?
+    var wakeWordDetectedHandler: (() -> Void)?
     
     // For UIKit compatibility
     var onActivationDetected: (() -> Void)?

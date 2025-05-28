@@ -170,7 +170,7 @@ extension BluetoothManager {
     }
     
     /// Teilt Text in Zeilen auf, die auf das Display passen
-    private func splitTextIntoLines(_ text: String, maxWidth: Int, fontSize: Int) -> [String] {
+    func splitTextIntoLines(_ text: String, maxWidth: Int, fontSize: Int) -> [String] {
         // Vereinfachte Implementierung: Teilt den Text nach Satzzeichen und Wortgrenzen auf
         var lines: [String] = []
         let words = text.components(separatedBy: " ")
@@ -198,7 +198,7 @@ extension BluetoothManager {
     }
     
     /// Teilt Zeilen in Bildschirme auf
-    private func splitLinesIntoScreens(_ lines: [String], linesPerScreen: Int) -> [[String]] {
+    func splitLinesIntoScreens(_ lines: [String], linesPerScreen: Int) -> [[String]] {
         var screens: [[String]] = []
         var currentScreen: [String] = []
         

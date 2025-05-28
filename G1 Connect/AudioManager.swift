@@ -33,15 +33,17 @@ class AudioManager {
     /// Verarbeitet Audiodaten von der Brille
     func processAudioFromGlasses(_ audioData: Data, sequenceNumber: UInt8) {
         // Prüfen, ob die Sequenznummer in der richtigen Reihenfolge ist
-        if sequenceNumber != (lastSequenceNumber + 1) % 256 && lastSequenceNumber != 0 {
-            print("Warnung: Audiopaket außer Reihenfolge empfangen. Erwartet: \((lastSequenceNumber + 1) % 256), Erhalten: \(sequenceNumber)")
+        let expectedSequenceNumber = UInt8((Int(lastSequenceNumber) + 1) % 256) // Cast to Int for calculation, then back to UInt8
+
+        if sequenceNumber != expectedSequenceNumber && lastSequenceNumber != 0 {
+            print("Warnung: Audiopaket außer Reihenfolge empfangen. Erwartet: \(expectedSequenceNumber), Erhalten: \(sequenceNumber)")
         }
-        
+            
         lastSequenceNumber = sequenceNumber
-        
+            
         // Audiodaten zum Buffer hinzufügen
         audioBuffer.append(audioData)
-        
+            
         // Wenn genügend Daten für eine Dekodierung vorhanden sind, dekodieren
         if audioBuffer.count >= 240 { // Annahme: 240 Bytes für einen LC3-Frame
             decodeAndProcessAudio()
