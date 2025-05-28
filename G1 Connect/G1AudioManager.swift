@@ -1,11 +1,3 @@
-//
-//  G1AudioManager.swift
-//  G1 Connect
-//
-//  Created by Nicolas Fortune on 28.05.25.
-//
-
-
 import Foundation
 import AVFoundation
 import Speech
@@ -17,6 +9,7 @@ class G1AudioManager: NSObject, ObservableObject {
     // Published properties
     @Published var isProcessingAudio = false
     @Published var audioLevel: Float = 0.0
+    @Published var isAudioInputAvailable = false
     
     // Audio processing
     private var audioBuffer = Data()
@@ -63,20 +56,28 @@ class G1AudioManager: NSObject, ObservableObject {
         // Setup German speech recognizer for G1
         speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "de-DE"))
         
+        // Check availability
+        isAudioInputAvailable = speechRecognizer?.isAvailable ?? false
+        
         // Request permissions
-        SFSpeechRecognizer.requestAuthorization { status in
+        SFSpeechRecognizer.requestAuthorization { [weak self] status in
             DispatchQueue.main.async {
                 switch status {
                 case .authorized:
                     print("Speech recognition authorized")
+                    self?.isAudioInputAvailable = true
                 case .denied:
                     print("Speech recognition denied")
+                    self?.isAudioInputAvailable = false
                 case .restricted:
                     print("Speech recognition restricted")
+                    self?.isAudioInputAvailable = false
                 case .notDetermined:
                     print("Speech recognition not determined")
+                    self?.isAudioInputAvailable = false
                 @unknown default:
                     print("Speech recognition unknown status")
+                    self?.isAudioInputAvailable = false
                 }
             }
         }
@@ -85,6 +86,10 @@ class G1AudioManager: NSObject, ObservableObject {
     /// Starts Even AI audio processing
     func startEvenAIProcessing() {
         guard !isProcessingAudio else { return }
+        guard isAudioInputAvailable else {
+            print("Audio input not available")
+            return
+        }
         
         isProcessingAudio = true
         audioBuffer = Data()
@@ -171,6 +176,29 @@ class G1AudioManager: NSObject, ObservableObject {
             }
         }
     }
+    
+    // MARK: - Audio Format Info
+    
+    /// Gets current audio format information
+    var currentAudioFormat: String {
+        return "LC3 → PCM 16kHz Mono"
+    }
+    
+    /// Provides real-time audio visualization data
+    var audioVisualizationData: [Float] {
+        // Return mock data for audio visualization
+        // In a real implementation, this would return FFT data
+        return (0..<64).map { _ in Float.random(in: 0...audioLevel) }
+    }
+    
+    /// Static method for requesting speech permission
+    static func requestSpeechPermission(completion: @escaping (Bool) -> Void) {
+        SFSpeechRecognizer.requestAuthorization { status in
+            DispatchQueue.main.async {
+                completion(status == .authorized)
+            }
+        }
+    }
 }
 
 // MARK: - G1AudioDelegate
@@ -250,6 +278,8 @@ extension G1AudioManager: G1AudioDelegate {
             bytes.bindMemory(to: Int16.self)
         }
         
+        guard !samples.isEmpty else { return }
+        
         let sum = samples.map { Float($0) * Float($0) }.reduce(0, +)
         let rms = sqrt(sum / Float(samples.count))
         let normalizedLevel = min(rms / 32768.0, 1.0)
@@ -317,26 +347,4 @@ protocol G1SpeechDelegate: AnyObject {
     func didRecognizeText(_ text: String, isFinal: Bool)
     func didReceiveLilyResponse(_ response: LilyResponse)
     func didEncounterError(_ error: Error)
-}
-
-// MARK: - Audio Processing Extensions
-
-extension G1AudioManager {
-    
-    /// Provides real-time audio visualization data
-    var audioVisualizationData: [Float] {
-        // Return mock data for audio visualization
-        // In a real implementation, this would return FFT data
-        return (0..<64).map { _ in Float.random(in: 0...audioLevel) }
-    }
-    
-    /// Checks if audio input is available
-    var isAudioInputAvailable: Bool {
-        return speechRecognizer?.isAvailable ?? false
-    }
-    
-    /// Gets current audio format information
-    var currentAudioFormat: String {
-        return "LC3 → PCM 16kHz Mono"
-    }
 }

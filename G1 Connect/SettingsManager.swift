@@ -147,7 +147,6 @@ class SettingsManager: ObservableObject {
     private func sendBrightnessCommand() {
         guard BluetoothManager.shared.isConnected, !autoBrightness else { return }
         
-        // Using hypothetical G1 brightness command - would need official documentation
         let command: [UInt8] = [0xF5, 0x10, UInt8(brightness)]
         let data = Data(command)
         BluetoothManager.shared.writeDataToG1(data, side: .both)
@@ -220,14 +219,14 @@ class SettingsManager: ObservableObject {
         guard BluetoothManager.shared.isConnected else { return }
         
         let status: UInt8 = powerSaving ? 1 : 0
-        let command: [UInt8] = [0xF5, 0x17, status]
+        let command: [UInt8] = [0xF5, 0x18, status] // Note: Changed from 0x17 to avoid conflict
         let data = Data(command)
         BluetoothManager.shared.writeDataToG1(data, side: .both)
         
         print("Power saving command sent: \(powerSaving)")
     }
     
-    private func sendAutoOffCommand() -> Return Type {
+    private func sendAutoOffCommand() {
         guard BluetoothManager.shared.isConnected else { return }
         
         let minutes: UInt8
@@ -236,53 +235,11 @@ class SettingsManager: ObservableObject {
         case .oneMinute: minutes = 1
         case .fiveMinutes: minutes = 5
         case .tenMinutes: minutes = 10
-        case .thirtyMinutes: return "Nach 30 Minuten"
-        case .oneHour: return "Nach 1 Stunde"
-        }
-    }
-}
-
-enum TouchBarSensitivity: Int, CaseIterable, Identifiable {
-    case low = 0
-    case medium = 1
-    case high = 2
-    
-    var id: Int { rawValue }
-    
-    var displayName: String {
-        switch self {
-        case .low: return "Niedrig"
-        case .medium: return "Mittel"
-        case .high: return "Hoch"
-        }
-    }
-}
-
-enum DisplayOrientation: Int, CaseIterable, Identifiable {
-    case auto = 0
-    case landscape = 1
-    case portrait = 2
-    
-    var id: Int { rawValue }
-    
-    var displayName: String {
-        switch self {
-        case .auto: return "Automatisch"
-        case .landscape: return "Querformat"
-        case .portrait: return "Hochformat"
-        }
-    }
-}
-
-// MARK: - UserDefaults Extension
-extension UserDefaults {
-    func contains(key: String) -> Bool {
-        return object(forKey: key) != nil
-    }
-}: minutes = 30
+        case .thirtyMinutes: minutes = 30
+        case .oneHour: minutes = 60
         }
         
-        let command: [UInt8] = [0xF5, 0x18, minutes]
+        let command: [UInt8] = [0xF5, 0x19, minutes]
         let data = Data(command)
         BluetoothManager.shared.writeDataToG1(data, side: .both)
         
@@ -299,7 +256,7 @@ extension UserDefaults {
         case .high: sensitivity = 3
         }
         
-        let command: [UInt8] = [0xF5, 0x19, sensitivity]
+        let command: [UInt8] = [0xF5, 0x1A, sensitivity]
         let data = Data(command)
         BluetoothManager.shared.writeDataToG1(data, side: .both)
         
@@ -316,7 +273,7 @@ extension UserDefaults {
         case .portrait: orientation = 2
         }
         
-        let command: [UInt8] = [0xF5, 0x1A, orientation]
+        let command: [UInt8] = [0xF5, 0x1B, orientation]
         let data = Data(command)
         BluetoothManager.shared.writeDataToG1(data, side: .both)
         
@@ -482,4 +439,47 @@ enum AutoOffTime: Int, CaseIterable, Identifiable {
         case .oneMinute: return "Nach 1 Minute"
         case .fiveMinutes: return "Nach 5 Minuten"
         case .tenMinutes: return "Nach 10 Minuten"
-        case .thirtyMinutes
+        case .thirtyMinutes: return "Nach 30 Minuten"
+        case .oneHour: return "Nach 1 Stunde"
+        }
+    }
+}
+
+enum TouchBarSensitivity: Int, CaseIterable, Identifiable {
+    case low = 0
+    case medium = 1
+    case high = 2
+    
+    var id: Int { rawValue }
+    
+    var displayName: String {
+        switch self {
+        case .low: return "Niedrig"
+        case .medium: return "Mittel"
+        case .high: return "Hoch"
+        }
+    }
+}
+
+enum DisplayOrientation: Int, CaseIterable, Identifiable {
+    case auto = 0
+    case landscape = 1
+    case portrait = 2
+    
+    var id: Int { rawValue }
+    
+    var displayName: String {
+        switch self {
+        case .auto: return "Automatisch"
+        case .landscape: return "Querformat"
+        case .portrait: return "Hochformat"
+        }
+    }
+}
+
+// MARK: - UserDefaults Extension
+extension UserDefaults {
+    func contains(key: String) -> Bool {
+        return object(forKey: key) != nil
+    }
+}

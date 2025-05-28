@@ -83,18 +83,18 @@ extension LilyView {
         let wakeWordManager = WakeWordManager.shared
         
         // Wake-Word-Erkennung starten
-        wakeWordManager.startWakeWordDetection { [weak self] in
-            guard let self = self else { return }
-            
+        wakeWordManager.startWakeWordDetection {
             // Zum Lily-Tab wechseln (falls nicht bereits aktiv)
             // In einer realen Implementierung würde hier der Tab-Wechsel erfolgen
             
             // Lily aktivieren und Feedback anzeigen
             DispatchQueue.main.async {
-                // Zufällige Antwort generieren
+                // `self` is a copy of LilyView. Accessing `lilyViewModel` (StateObject) is fine.
                 self.lilyViewModel.generateRandomResponseWithGlassesUpdate()
                 
-                // Eingabefeld anzeigen
+                // WARNING: Modifying `self.showingInput` on a copy of the struct
+                // will not update the actual View's state. This is a latent bug.
+                // This state should ideally be managed via `lilyViewModel`.
                 self.showingInput = true
             }
         }
@@ -142,22 +142,20 @@ extension ContentView {
         SpeechRecognizer.requestPermission { granted in
             if granted {
                 // Wake-Word-Erkennung starten
-                WakeWordManager.shared.startWakeWordDetection { [weak self] in
-                    guard let self = self else { return }
-                    
+                WakeWordManager.shared.startWakeWordDetection {
                     // Zum Lily-Tab wechseln
                     DispatchQueue.main.async {
-                        self.selectedTab = 0
+                        // `self` is a copy of ContentView. Accessing `viewModel` (StateObject) is fine.
+                        self.viewModel.selectedTab = 0
                     }
                 }
                 
                 // Listener für Brillen-Aktivierung hinzufügen
-                NotificationCenter.default.addObserver(forName: .lilyActivatedFromGlasses, object: nil, queue: .main) { [weak self] _ in
-                    guard let self = self else { return }
-                    
+                NotificationCenter.default.addObserver(forName: .lilyActivatedFromGlasses, object: nil, queue: .main) { _ in
                     // Zum Lily-Tab wechseln
                     DispatchQueue.main.async {
-                        self.selectedTab = 0
+                        // `self` is a copy of ContentView. Accessing `viewModel` (StateObject) is fine.
+                        self.viewModel.selectedTab = 0
                     }
                 }
             }

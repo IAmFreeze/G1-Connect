@@ -282,7 +282,11 @@ class G1DisplayManager {
         sendImageToG1(testImage)
         
         // Send test text
-        sendTextToG1("G1 Display Test\nVerbindung erfolgreich!\n\nTime: \(DateFormatter.localizedString(from: Date(), dateStyle: .none, timeStyle: .short))")
+        let formatter = DateFormatter()
+        formatter.dateStyle = .none
+        formatter.timeStyle = .short
+        let currentTime = formatter.string(from: Date())
+        sendTextToG1("G1 Display Test\nVerbindung erfolgreich!\n\nTime: \(currentTime)")
     }
     
     private func createTestPatternImage() -> UIImage {
@@ -301,14 +305,14 @@ class G1DisplayManager {
             
             let gridSize = 20
             for x in stride(from: 0, to: Int(size.width), by: gridSize) {
-                context.cgContext.move(to: CGPoint(x: x, y: 0))
-                context.cgContext.addLine(to: CGPoint(x: x, y: size.height))
+                context.cgContext.move(to: CGPoint(x: CGFloat(x), y: 0.0)) // Ensure y is CGFloat
+                context.cgContext.addLine(to: CGPoint(x: CGFloat(x), y: size.height))
                 context.cgContext.strokePath()
             }
             
             for y in stride(from: 0, to: Int(size.height), by: gridSize) {
-                context.cgContext.move(to: CGPoint(x: 0, y: y))
-                context.cgContext.addLine(to: CGPoint(x: size.width, y: y))
+                context.cgContext.move(to: CGPoint(x: 0.0, y: CGFloat(y))) // Ensure x is CGFloat
+                context.cgContext.addLine(to: CGPoint(x: size.width, y: CGFloat(y)))
                 context.cgContext.strokePath()
             }
             

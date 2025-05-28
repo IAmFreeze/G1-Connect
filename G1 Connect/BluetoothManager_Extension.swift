@@ -66,41 +66,41 @@ extension BluetoothManager {
 // Erweiterung für die Verarbeitung von Audiodaten im CBPeripheralDelegate
 extension BluetoothManager {
     
-    /// Verarbeitet eingehende Charakteristik-Updates (überschreibt die bestehende Methode)
-    func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
-        guard error == nil else {
-            print("Fehler beim Aktualisieren des Charakteristikwerts: \(error!.localizedDescription)")
-            return
-        }
-        
-        guard let data = characteristic.value else { return }
-        
-        // Prüfen, ob es sich um Audiodaten handelt (Kommando 0xF1)
-        if data.count > 2 && data[0] == 0xF1 {
-            let sequenceNumber = data[1]
-            let audioData = data.subdata(in: 2..<data.count)
-            
-            // Audiodaten an den AudioManager weiterleiten
-            AudioManager.shared.processAudioFromGlasses(audioData, sequenceNumber: sequenceNumber)
-        }
-        
-        // Prüfen, ob es sich um eine Kommandoantwort handelt
-        else if data.count > 1 && data[0] == 0x0E {
-            let status = data[1]
-            let enable = data.count > 2 ? data[2] : 0
-            
-            if status == 0xC9 {
-                print("Mikrofon-Kommando erfolgreich: \(enable == 1 ? "aktiviert" : "deaktiviert")")
-            } else if status == 0xCA {
-                print("Mikrofon-Kommando fehlgeschlagen: \(enable == 1 ? "Aktivierung" : "Deaktivierung")")
-            }
-        }
-        
-        // Andere Kommandos verarbeiten
-        else if data.count > 1 {
-            processGlassesCommand([UInt8](data))
-        }
-    }
+    // /// Verarbeitet eingehende Charakteristik-Updates (überschreibt die bestehende Methode)
+    // func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
+    //     guard error == nil else {
+    //         print("Fehler beim Aktualisieren des Charakteristikwerts: \(error!.localizedDescription)")
+    //         return
+    //     }
+    //
+    //     guard let data = characteristic.value else { return }
+    //
+    //     // Prüfen, ob es sich um Audiodaten handelt (Kommando 0xF1)
+    //     if data.count > 2 && data[0] == 0xF1 {
+    //         let sequenceNumber = data[1]
+    //         let audioData = data.subdata(in: 2..<data.count)
+    //
+    //         // Audiodaten an den AudioManager weiterleiten
+    //         AudioManager.shared.processAudioFromGlasses(audioData, sequenceNumber: sequenceNumber)
+    //     }
+    //
+    //     // Prüfen, ob es sich um eine Kommandoantwort handelt
+    //     else if data.count > 1 && data[0] == 0x0E {
+    //         let status = data[1]
+    //         let enable = data.count > 2 ? data[2] : 0
+    //
+    //         if status == 0xC9 {
+    //             print("Mikrofon-Kommando erfolgreich: \(enable == 1 ? "aktiviert" : "deaktiviert")")
+    //         } else if status == 0xCA {
+    //             print("Mikrofon-Kommando fehlgeschlagen: \(enable == 1 ? "Aktivierung" : "Deaktivierung")")
+    //         }
+    //     }
+    //
+    //     // Andere Kommandos verarbeiten
+    //     else if data.count > 1 {
+    //         processGlassesCommand([UInt8](data))
+    //     }
+    // }
 }
 
 // Erweiterung für Notification.Name

@@ -1,12 +1,12 @@
 import SwiftUI
 
 struct LilyView: View {
-    @StateObject private var lilyViewModel = LilyViewModel()
+    @StateObject internal var lilyViewModel = LilyViewModel()
     @StateObject private var bluetoothManager = BluetoothManager.shared
     @StateObject private var g1AudioManager = G1AudioManager.shared
     @StateObject private var lilyAIManager = LilyAIManager.shared
     @State private var userInput = ""
-    @State private var showingInput = false
+    @State internal var showingInput = false
     @State private var showingConversationHistory = false
     
     var body: some View {

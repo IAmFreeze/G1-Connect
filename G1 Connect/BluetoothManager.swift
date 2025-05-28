@@ -22,6 +22,14 @@ enum BluetoothError: Error {
     }
 }
 
+enum G1Side {
+    case left, right, both
+}
+
+enum TouchBarSide {
+    case left, right
+}
+
 class BluetoothManager: NSObject, ObservableObject {
     static let shared = BluetoothManager()
     
@@ -250,13 +258,9 @@ class BluetoothManager: NSObject, ObservableObject {
         writeDataToG1(crcCommand, side: .both)
     }
     
-    // MARK: - G1 Data Writing
+    // MARK: - G1 Data Writing (Public Methods)
     
-    enum G1Side {
-        case left, right, both
-    }
-    
-    private func writeDataToG1(_ data: Data, side: G1Side) {
+    func writeDataToG1(_ data: Data, side: G1Side) {
         switch side {
         case .left:
             writeToLeft(data)
@@ -268,6 +272,15 @@ class BluetoothManager: NSObject, ObservableObject {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                 self.writeToRight(data)
             }
+        }
+    }
+    
+    // Legacy compatibility method
+    func writeData(writeData: Data, lr: String) {
+        if lr == "L" {
+            writeToLeft(writeData)
+        } else if lr == "R" {
+            writeToRight(writeData)
         }
     }
     
@@ -431,6 +444,9 @@ extension BluetoothManager: CBCentralManagerDelegate {
             connectionStatus = "G1 \(deviceName) verbunden"
             currentConnectingDeviceName = nil
             objectWillChange.send()
+            
+            // Post connection notification
+            NotificationCenter.default.post(name: .g1Connected, object: nil)
         }
     }
     
@@ -446,6 +462,9 @@ extension BluetoothManager: CBCentralManagerDelegate {
             connectionStatus = "G1 Verbindung getrennt"
             isRecording = false
             objectWillChange.send()
+            
+            // Post disconnection notification
+            NotificationCenter.default.post(name: .g1Disconnected, object: nil)
         }
         
         // Auto-reconnect logic
@@ -499,6 +518,26 @@ extension BluetoothManager: CBPeripheralDelegate {
         }
     }
     
+    func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
+        if let error = error {
+            print("Write error to G1: \(error.localizedDescription)")
+        }
+    }
+    
+    func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
+        if let error = error {
+            print("Notification state update error: \(error.localizedDescription)")
+            return
+        }
+        
+        if characteristic.isNotifying {
+            print("Notifications enabled for characteristic: \(characteristic.uuid)")
+        } else {
+            print("Notifications disabled for characteristic: \(characteristic.uuid)")
+        }
+    }
+    
+    // COMBINED didUpdateValueFor method - handles all G1 communication
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         guard error == nil, let data = characteristic.value else {
             if let error = error {
@@ -511,11 +550,7 @@ extension BluetoothManager: CBPeripheralDelegate {
         processG1Data(data, from: peripheral)
     }
     
-    func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
-        if let error = error {
-            print("Write error to G1: \(error.localizedDescription)")
-        }
-    }
+    // MARK: - G1 Data Processing
     
     private func processG1Data(_ data: Data, from peripheral: CBPeripheral) {
         guard data.count > 0 else { return }
@@ -601,10 +636,6 @@ protocol G1TouchBarDelegate: AnyObject {
     func didStopEvenAI()
     func didTapTouchBar(side: TouchBarSide)
     func didExitToDashboard()
-}
-
-enum TouchBarSide {
-    case left, right
 }
 
 // MARK: - Notifications

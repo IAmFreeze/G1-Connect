@@ -3,7 +3,6 @@ import SwiftUI
 struct SettingsView: View {
     @StateObject private var bluetoothManager = BluetoothManager.shared
     @StateObject private var settingsManager = SettingsManager.shared
-    @State private var showingResetAlert = false
     @State private var showingCompatibilityWarnings = false
     @State private var compatibilityWarnings: [String] = []
     
@@ -41,14 +40,6 @@ struct SettingsView: View {
                         checkCompatibility()
                     }
                 }
-            }
-            .alert("Einstellungen zurücksetzen", isPresented: $showingResetAlert) {
-                Button("Abbrechen", role: .cancel) { }
-                Button("Zurücksetzen", role: .destructive) {
-                    settingsManager.resetToDefaults()
-                }
-            } message: {
-                Text("Möchten Sie alle Einstellungen auf die Standardwerte zurücksetzen?")
             }
             .alert("Kompatibilitätsprüfung", isPresented: $showingCompatibilityWarnings) {
                 Button("OK") { }
@@ -474,11 +465,7 @@ struct G1DebugInfoView: View {
 // MARK: - Reset and Info Section
 
 struct ResetInfoSection: View {
-    @Binding var showingResetAlert: Bool
-    
-    init(showingResetAlert: Binding<Bool> = .constant(false)) {
-        self._showingResetAlert = showingResetAlert
-    }
+    @State private var showingResetAlert = false
     
     var body: some View {
         Section {
@@ -492,6 +479,14 @@ struct ResetInfoSection: View {
                         .foregroundColor(Constants.errorColor)
                 }
             }
+        }
+        .alert("Einstellungen zurücksetzen", isPresented: $showingResetAlert) {
+            Button("Abbrechen", role: .cancel) { }
+            Button("Zurücksetzen", role: .destructive) {
+                SettingsManager.shared.resetToDefaults()
+            }
+        } message: {
+            Text("Möchten Sie alle Einstellungen auf die Standardwerte zurücksetzen?")
         }
     }
 }

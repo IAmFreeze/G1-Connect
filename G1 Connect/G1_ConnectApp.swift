@@ -1,4 +1,5 @@
 import SwiftUI
+import AVFoundation
 
 @main
 struct G1_ConnectApp: App {
