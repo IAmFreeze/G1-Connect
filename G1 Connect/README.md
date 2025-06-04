@@ -105,6 +105,18 @@ Die App verwendet eine moderne SwiftUI-Architektur mit folgenden Komponenten:
 - **SettingsManager.swift**: ObservableObject für Einstellungsverwaltung
 - **SpeechRecognizer.swift**: Spracherkennung für "Hey, Lily"
 
+## Nutzung der offiziellen Demo-App
+
+Die Implementierung orientiert sich an der von Even Realities bereitgestellten
+[EvenDemoApp](https://github.com/even-realities/EvenDemoApp). Einige Protokoll-
+Features wie das periodische Heartbeat-Signal (Befehl `0x25`) und das
+Verlassen aller Funktionen über `0x18` wurden übernommen. Die App sendet nun
+automatisch alle acht Sekunden ein Heartbeat-Paket, sobald beide Brillenarme
+verbunden sind. Bei einer Trennung wird das Heartbeat beendet.
+Das Kommando zum Verlassen kann zudem über die Methode
+`exitToDashboard()` im `BluetoothManager` ausgelöst werden.
+
+
 ## Fehlerbehebung
 
 ### Bluetooth-Verbindungsprobleme
