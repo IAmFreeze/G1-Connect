@@ -64,6 +64,10 @@ class BluetoothManager: NSObject, ObservableObject {
     // G1 Protocol specific
     private var pendingLeftAcknowledgment = false
     private var commandQueue: [Data] = []
+
+    // Heartbeat
+    private var heartbeatTimer: Timer?
+    private var heartbeatSequence: UInt8 = 0
     
     // Delegates
     weak var audioDelegate: G1AudioDelegate?
@@ -139,6 +143,7 @@ class BluetoothManager: NSObject, ObservableObject {
         connectedDevices.removeAll()
         connectionStatus = "Alle Geräte getrennt"
         isRecording = false
+        stopHeartbeat()
     }
     
     // MARK: - G1 Protocol Commands
@@ -231,6 +236,33 @@ class BluetoothManager: NSObject, ObservableObject {
         // Send CRC command (simplified implementation)
         let crcCommand = Data([Constants.G1Commands.imageCRC, 0x00])
         writeDataToG1(crcCommand, side: .both)
+    }
+
+    /// Starts periodic heartbeat to keep the BLE connection alive
+    func startHeartbeat() {
+        stopHeartbeat()
+        heartbeatTimer = Timer.scheduledTimer(withTimeInterval: 8.0, repeats: true) { [weak self] _ in
+            self?.sendHeartbeat()
+        }
+    }
+
+    /// Stops the heartbeat timer
+    func stopHeartbeat() {
+        heartbeatTimer?.invalidate()
+        heartbeatTimer = nil
+    }
+
+    /// Sends a single heartbeat packet
+    func sendHeartbeat() {
+        var data = Data([Constants.G1Commands.heartbeat, 0x06, 0x00, heartbeatSequence, 0x04, heartbeatSequence])
+        heartbeatSequence &+= 1
+        writeDataToG1(data, side: .both)
+    }
+
+    /// Sends exit command to return glasses to dashboard
+    func exitToDashboard() {
+        let command = Data([Constants.G1Commands.exitFeature])
+        writeDataToG1(command, side: .both)
     }
     
     // MARK: - G1 Data Writing (Public Methods)
@@ -353,7 +385,9 @@ extension BluetoothManager: CBCentralManagerDelegate {
             connectionStatus = "G1 \(deviceName) verbunden"
             currentConnectingDeviceName = nil
             objectWillChange.send()
-            
+
+            startHeartbeat()
+
             // Post connection notification
             NotificationCenter.default.post(name: .g1Connected, object: nil)
         }
@@ -371,7 +405,9 @@ extension BluetoothManager: CBCentralManagerDelegate {
             connectionStatus = "G1 Verbindung getrennt"
             isRecording = false
             objectWillChange.send()
-            
+
+            stopHeartbeat()
+
             // Post disconnection notification
             NotificationCenter.default.post(name: .g1Disconnected, object: nil)
         }

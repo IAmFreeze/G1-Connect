@@ -43,6 +43,10 @@ struct Constants {
         static let imagePacket: UInt8 = 0x15
         static let imageEnd: [UInt8] = [0x20, 0x0d, 0x0e]
         static let imageCRC: UInt8 = 0x16
+
+        // Connection maintenance and exit
+        static let heartbeat: UInt8 = 0x25
+        static let exitFeature: UInt8 = 0x18
     }
     
     // MARK: - G1 Display Specifications (Official)
