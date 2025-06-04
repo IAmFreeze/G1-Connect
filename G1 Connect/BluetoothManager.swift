@@ -125,31 +125,6 @@ class BluetoothManager: NSObject, ObservableObject {
         connectionStatus = "Scan gestoppt"
     }
     
-    func connectToDevice(deviceName: String) {
-        centralManager.stopScan()
-        isScanning = false
-        
-        guard let peripheralPair = pairedDevices[deviceName] else {
-            connectionStatus = "Gerät nicht gefunden"
-            return
-        }
-        
-        guard let leftPeripheral = peripheralPair.0,
-              let rightPeripheral = peripheralPair.1 else {
-            connectionStatus = "Ein oder beide Peripheriegeräte wurden nicht gefunden"
-            return
-        }
-        
-        currentConnectingDeviceName = deviceName
-        connectionStatus = "Verbinde mit \(deviceName)..."
-        
-        // G1 uses dual BLE connections
-        centralManager.connect(leftPeripheral, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
-        centralManager.connect(rightPeripheral, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
-        
-        // Save last connected device
-        UserDefaults.standard.set(deviceName, forKey: "lastConnectedDevice")
-    }
     
     func disconnectFromGlasses() {
         for (_, devices) in connectedDevices {
@@ -347,23 +322,6 @@ extension BluetoothManager: CBCentralManagerDelegate {
         }
     }
     
-    func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
-        guard let name = peripheral.name else { return }
-        
-        // G1 devices follow pattern: [Brand]_[L/R]_[Channel]
-        let components = name.components(separatedBy: "_")
-        guard components.count >= 3, let channelNumber = components.last else { return }
-        
-        let pairName = "G1_\(channelNumber)"
-        
-        if name.contains("_L_") {
-            pairedDevices[pairName, default: (nil, nil)].0 = peripheral
-        } else if name.contains("_R_") {
-            pairedDevices[pairName, default: (nil, nil)].1 = peripheral
-        }
-        
-        objectWillChange.send()
-    }
     
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         guard let deviceName = currentConnectingDeviceName,
