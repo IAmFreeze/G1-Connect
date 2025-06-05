@@ -50,8 +50,8 @@ extension LilyView {
     // Öffentliche Wrapper-Methoden
     func getLilyViewModel() -> LilyViewModel { return lilyViewModel }
     func getBluetoothManager() -> BluetoothManager { return bluetoothManager }
-    func setShowingInput(_ showing: Bool) { showingInput = showing }
-    func getShowingInput() -> Bool { return showingInput }
+    func setShowingInput(_ showing: Bool) { lilyViewModel.isInputShowing = showing }
+    func getShowingInput() -> Bool { return lilyViewModel.isInputShowing }
     
     // Weitere Methoden für die Brillen-Integration
     func processGlassesInput(_ input: String) { ... }

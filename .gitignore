@@ -1,0 +1,15 @@
+# Xcode
+*.xcworkspace
+DerivedData/
+*.xcuserdatad
+*.xcuserdata
+
+# Swift Package Manager
+.build/
+
+# Build artifacts
+build/
+
+# Misc
+.DS_Store
+G1 Connect.zip
