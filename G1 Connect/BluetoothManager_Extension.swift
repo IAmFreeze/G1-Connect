@@ -70,25 +70,28 @@ extension BluetoothManager {
     // MARK: - Verbesserte G1-Erkennung
     
     public func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
-        guard let name = peripheral.name else {
+        let deviceName = peripheral.name
+        if let name = deviceName {
+            print("🔍 Discovered device: \(name) (RSSI: \(RSSI))")
+        } else {
             print("Discovered peripheral without name: \(peripheral.identifier)")
-            return
         }
-        
-        print("🔍 Discovered device: \(name) (RSSI: \(RSSI))")
+
         print("   UUID: \(peripheral.identifier)")
         print("   Advertisement data: \(advertisementData)")
-        
+
         // Erweiterte G1-Erkennung
-        if isG1Device(name: name, advertisementData: advertisementData) {
-            print("✅ G1 device detected: \(name)")
-            handleG1DeviceDiscovery(peripheral: peripheral, name: name, rssi: RSSI)
+        if isG1Device(name: deviceName, advertisementData: advertisementData) {
+            let displayName = deviceName ?? peripheral.identifier.uuidString
+            print("✅ G1 device detected: \(displayName)")
+            handleG1DeviceDiscovery(peripheral: peripheral, name: deviceName, rssi: RSSI)
         } else {
-            print("❌ Not a G1 device: \(name)")
+            let displayName = deviceName ?? peripheral.identifier.uuidString
+            print("❌ Not a G1 device: \(displayName)")
         }
     }
     
-    private func isG1Device(name: String, advertisementData: [String: Any]) -> Bool {
+    private func isG1Device(name: String?, advertisementData: [String: Any]) -> Bool {
         // Verschiedene mögliche G1-Namensschemas prüfen
         let g1Patterns = [
             "_L_", "_R_",  // Original-Schema: [Brand]_[L/R]_[Channel]
@@ -97,12 +100,14 @@ extension BluetoothManager {
             "ER_L", "ER_R", // Even Realities Abkürzung
             "left", "right" // Einfache L/R-Namen
         ]
-        
+
         // Name-basierte Erkennung
-        for pattern in g1Patterns {
-            if name.contains(pattern) {
-                print("📍 Matched G1 pattern: \(pattern) in \(name)")
-                return true
+        if let name = name {
+            for pattern in g1Patterns {
+                if name.contains(pattern) {
+                    print("📍 Matched G1 pattern: \(pattern) in \(name)")
+                    return true
+                }
             }
         }
         
@@ -128,16 +133,18 @@ extension BluetoothManager {
         return false
     }
     
-    private func handleG1DeviceDiscovery(peripheral: CBPeripheral, name: String, rssi: NSNumber) {
+    private func handleG1DeviceDiscovery(peripheral: CBPeripheral, name: String?, rssi: NSNumber) {
+        let deviceName = name ?? "Unknown"
+
         // Bestimme ob es sich um linke oder rechte Seite handelt
-        let isLeftSide = name.contains("_L_") || name.contains("L") || name.lowercased().contains("left")
-        let isRightSide = name.contains("_R_") || name.contains("R") || name.lowercased().contains("right")
-        
-        print("🔄 Processing G1 device: \(name)")
+        let isLeftSide = deviceName.contains("_L_") || deviceName.contains("L") || deviceName.lowercased().contains("left")
+        let isRightSide = deviceName.contains("_R_") || deviceName.contains("R") || deviceName.lowercased().contains("right")
+
+        print("🔄 Processing G1 device: \(deviceName)")
         print("   Left side: \(isLeftSide), Right side: \(isRightSide)")
         
         if !isLeftSide && !isRightSide {
-            print("⚠️ Cannot determine side for device: \(name)")
+            print("⚠️ Cannot determine side for device: \(deviceName)")
             // Als beide Seiten behandeln oder basierend auf UUID entscheiden
             let deviceKey = "G1_Unknown_\(peripheral.identifier.uuidString.prefix(8))"
             pairedDevices[deviceKey] = (peripheral, peripheral)
@@ -176,11 +183,13 @@ extension BluetoothManager {
         objectWillChange.send()
     }
     
-    private func extractDeviceKey(from name: String, peripheral: CBPeripheral) -> String {
+    private func extractDeviceKey(from name: String?, peripheral: CBPeripheral) -> String {
         // Versuche Kanal aus dem Namen zu extrahieren
-        let components = name.components(separatedBy: "_")
-        if components.count >= 3, let channelNumber = components.last {
-            return "G1_\(channelNumber)"
+        if let name = name {
+            let components = name.components(separatedBy: "_")
+            if components.count >= 3, let channelNumber = components.last {
+                return "G1_\(channelNumber)"
+            }
         }
         
         // Fallback: Verwende ersten Teil des UUIDs
@@ -253,13 +262,12 @@ extension BluetoothManager {
     
     // Helper method to replace direct access to private property
     fileprivate func setCurrentConnectingDevice(_ deviceName: String) {
-        // This will be resolved internally in the BluetoothManager class
-        // since we can't access the private property directly
+        // Implemented in BluetoothManager.swift to access the private property
     }
-    
+
     // Helper methods for connecting and scanning since we can't access centralManager directly
     fileprivate func connect(_ peripheral: CBPeripheral, options: [String: Any]?) {
-        // This method acts as a bridge to the centralManager.connect method
+        // Implemented in BluetoothManager.swift
     }
     
     // MARK: - Debug-Hilfsmethoden
