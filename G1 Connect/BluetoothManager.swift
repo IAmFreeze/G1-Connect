@@ -591,3 +591,19 @@ extension Notification.Name {
     static let g1Connected = Notification.Name("g1Connected")
     static let g1Disconnected = Notification.Name("g1Disconnected")
 }
+
+// MARK: - Bridging for Extension
+
+fileprivate extension BluetoothManager {
+    /// Bridge to assign the private `currentConnectingDeviceName` property
+    /// from `BluetoothManager_Extension`.
+    func setCurrentConnectingDevice(_ deviceName: String) {
+        self.currentConnectingDeviceName = deviceName
+    }
+
+    /// Bridge to call the private `centralManager.connect` method
+    /// from `BluetoothManager_Extension`.
+    func connect(_ peripheral: CBPeripheral, options: [String: Any]?) {
+        centralManager.connect(peripheral, options: options)
+    }
+}
