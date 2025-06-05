@@ -6,7 +6,6 @@ struct LilyView: View {
     @StateObject private var g1AudioManager = G1AudioManager.shared
     @StateObject private var lilyAIManager = LilyAIManager.shared
     @State private var userInput = ""
-    @State internal var showingInput = false
     @State private var showingConversationHistory = false
     
     var body: some View {
@@ -48,18 +47,18 @@ struct LilyView: View {
                     }
                     
                     // Input Area
-                    if showingInput {
+                    if lilyViewModel.isInputShowing {
                         LilyInputView(
                             userInput: $userInput,
                             onSubmit: processUserInput,
-                            onCancel: { showingInput = false }
+                            onCancel: { lilyViewModel.isInputShowing = false }
                         )
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                     }
                     
                     // Action Buttons
                     LilyActionButtons(
-                        showingInput: $showingInput,
+                        showingInput: $lilyViewModel.isInputShowing,
                         showingHistory: $showingConversationHistory,
                         onRandomResponse: generateRandomResponse,
                         onTestG1: sendTestToG1,
@@ -89,11 +88,11 @@ struct LilyView: View {
                 ConversationHistoryView()
             }
             .onTapGesture {
-                if !showingInput && !g1AudioManager.isProcessingAudio {
+                if !lilyViewModel.isInputShowing && !g1AudioManager.isProcessingAudio {
                     generateRandomResponse()
                 }
             }
-            .animation(.easeInOut(duration: 0.3), value: showingInput)
+            .animation(.easeInOut(duration: 0.3), value: lilyViewModel.isInputShowing)
             .animation(.easeInOut(duration: 0.3), value: g1AudioManager.isProcessingAudio)
         }
     }
@@ -103,7 +102,7 @@ struct LilyView: View {
         
         let inputText = userInput
         userInput = ""
-        showingInput = false
+        lilyViewModel.isInputShowing = false
         
         // Process with Lily AI
         lilyAIManager.processUserInput(inputText) { response in
@@ -538,6 +537,7 @@ class LilyViewModel: ObservableObject {
     @Published var currentEmotion: LilyEmotion = .happy
     @Published var currentMessage: String = "Hallo! Ich bin Lily, deine persönliche Assistentin für die G1-Brille. Du kannst mich mit \"Hey, Lily\" aktivieren oder die TouchBar drücken, um mit mir zu sprechen."
     @Published var currentEmotionImage: UIImage?
+    @Published var isInputShowing: Bool = false
     
     private var emotionImages: [LilyEmotion: UIImage] = [:]
     

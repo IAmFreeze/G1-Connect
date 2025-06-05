@@ -91,11 +91,7 @@ extension LilyView {
             DispatchQueue.main.async {
                 // `self` is a copy of LilyView. Accessing `lilyViewModel` (StateObject) is fine.
                 self.lilyViewModel.generateRandomResponseWithGlassesUpdate()
-                
-                // WARNING: Modifying `self.showingInput` on a copy of the struct
-                // will not update the actual View's state. This is a latent bug.
-                // This state should ideally be managed via `lilyViewModel`.
-                self.showingInput = true
+                self.lilyViewModel.isInputShowing = true
             }
         }
     }
